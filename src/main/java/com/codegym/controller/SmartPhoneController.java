@@ -41,4 +41,15 @@ public class SmartPhoneController {
         smartPhoneService.remove(id);
         return new ResponseEntity<>(smartphoneOptional.get(), HttpStatus.NO_CONTENT);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Smartphone> showEdit(@PathVariable Long id){
+        Optional<Smartphone> smartphone=smartPhoneService.findById(id);
+        return new ResponseEntity<>(smartphone.get(),HttpStatus.OK);
+    }
+
+    @PutMapping
+    public ResponseEntity<Smartphone> update(@RequestBody Smartphone smartphone){
+        return new ResponseEntity<>(smartPhoneService.save(smartphone),HttpStatus.OK);
+    }
 }

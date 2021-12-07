@@ -19,6 +19,7 @@
                         '        <td>Model</td>\n' +
                         '        <td>Price</td>\n' +
                         '        <td>Delete</td>\n' +
+                        '        <td>Edit</td>\n' +
                         '    </tr>';
                     for (let i = 0; i < data.length; i++) {
                         content += getSmartphone(data[i]);
@@ -26,21 +27,108 @@
                     document.getElementById('smartphoneList').innerHTML = content;
                 }
             })
+
             function getSmartphone(smartphone) {
-                return `<tr><td >${smartphone.producer}</td><td >${smartphone.model}</td><td >${smartphone.price}</td><td><button type="submit" value="${smartphone.id}" onclick="deleteSmart(this)">Delete</button></td></tr>`;
+                return `<tr><td >${smartphone.producer}</td>
+                        <td >${smartphone.model}</td>
+                        <td >${smartphone.price}</td>`+
+                        `<td><button type="submit" value="${smartphone.id}" onclick="deleteSmart(this)">Delete</button></td>`+
+                       `<td><button type="submit" value="${smartphone.id}" onclick="formEdit(this)">Edit</button></td></tr>`
             }
         }
-        function deleteSmart(a){
-            let id=a.getAttribute("value");
+        // function viewEdit(a){
+        //     let id=a.getAttribute("value");
+        //     $.ajax({
+        //         type:"GET",
+        //         headers: {
+        //             'Accept': 'application/json',
+        //             'Content-Type': 'application/json'
+        //         },
+        //         url:"/smartphones/"+id,
+        //         success:function (smartphone){
+        //             let content= '<form>\n' +
+        //                 '    <table>\n' +
+        //                 '            <td><input type="text" id="id" value="'+smartphone.id+'" hidden></td>\n' +
+        //                 '        <tr>\n' +
+        //                 '            <td>Producer:</td>\n' +
+        //                 '            <td><input type="text" id="producer" value="'+smartphone.producer+'"></td>\n' +
+        //                 '        </tr>\n' +
+        //                 '        <tr>\n' +
+        //                 '            <td>Model:</td>\n' +
+        //                 '            <td><input type="text" id="model"value="'+smartphone.model+'"></td>\n' +
+        //                 '        </tr>\n' +
+        //                 '        <tr>\n' +
+        //                 '            <td>Price:</td>\n' +
+        //                 '            <td><input type="text" id="price" value="'+smartphone.price+'"></td>\n' +
+        //                 '        </tr>\n' +
+        //                 '        <tr>\n' +
+        //                 '            <td></td>\n' +
+        //                 '            <td><input type="submit" value="update" onclick="update()"></td>\n' +
+        //                 '        </tr>\n' +
+        //                 '    </table>\n' +
+        //                 '</form>';
+        //             document.getElementById("update").innerHTML=content;
+        //         }
+        //     });
+        //     event.preventDefault();
+        //
+        // }
+
+        function closeForm(){
+            document.getElementById("edit-smartphone").style.display = "none";
+        }
+
+        function formEdit(a){
+            let id = a.getAttribute("value");
+            $('#edit-smartphone').show()
             $.ajax({
-                type:"DELETE",
-                url: "/smartphones/"+id,
-                success:function (){
+                type:"GET",
+                url:"/smartphones/" + id,
+                success : function (smartphone){
+                    $('#idEdit').val(smartphone.id);
+                    $('#producerEdit').val(smartphone.producer);
+                    $('#modelEdit').val(smartphone.model);
+                    $('#priceEdit').val(smartphone.price);
+                }
+            })
+            event.preventDefault();
+        }
+        function update(){
+            let id=$('#idEdit').val();
+            let producer = $('#producerEdit').val();
+            let model = $('#modelEdit').val();
+            let price = $('#priceEdit').val();
+            let newSmartphone = {
+                id: id,
+                producer: producer,
+                model: model,
+                price: price
+            };
+            $.ajax({
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                type:"PUT",
+                url:"/smartphones",
+                data:JSON.stringify(newSmartphone),
+                success:successHandler
+            })
+            event.preventDefault();
+        }
+
+        function deleteSmart(a) {
+            let id = a.getAttribute("value");
+            $.ajax({
+                type: "DELETE",
+                url: "/smartphones/" + id,
+                success: function () {
                     a.parentElement.parentElement.remove();
                 }
             })
             event.preventDefault();
         }
+
         function addNewSmartPhone() {
             //lay du lieu
             let producer = $('#producer').val();
@@ -69,11 +157,20 @@
             event.preventDefault();
         }
 
+        function create() {
+            document.getElementById("add-smartphone").style.display = "block";
+        }
+
+        function closeFormCreate(){
+            document.getElementById("add-smartphone").style.display = "none";
+        }
+
     </script>
 </head>
 <body>
-<form id="add-smartphone">
+<form id="add-smartphone" style="display: none">
     <table>
+
         <tr>
             <td>Producer:</td>
             <td><input type="text" id="producer" placeholder="producer"></td>
@@ -90,8 +187,14 @@
             <td></td>
             <td><input type="submit" value="Add" onclick="addNewSmartPhone()"></td>
         </tr>
+
+        <tr>
+            <td></td>
+            <td><input type="submit" value="close" onclick="closeFormCreate()"></td>
+        </tr>
     </table>
 </form>
+<button onclick="create()">tao moi</button>
 <h1>Smartphone List</h1>
 <table id="smartphoneList" border="1px">
     <tr>
@@ -99,15 +202,49 @@
         <td>Model</td>
         <td>Price</td>
         <td>Delete</td>
+        <td>Edit</td>
     </tr>
     <th:block th:each="smartphone: ${smartphones}">
         <tr>
             <td th:text="${smartphone.producer}"></td>
             <td th:text="${smartphone.model}"></td>
             <td th:text="${smartphone.price}"></td>
-            <td><button type="submit" th:value="${smartphone.id}" onclick="deleteSmart(this)">Delete</button></td>
+            <td>
+                <button type="submit" th:value="${smartphone.id}" onclick="deleteSmart(this)">Delete</button>
+            </td>
+            <td>
+                <button type="submit" th:value="${smartphone.id}" onclick="formEdit(this)">Edit</button>
+            </td>
         </tr>
     </th:block>
 </table>
+
+<!--edit-->
+<form id="edit-smartphone" style="display: none">
+    <table>
+        <input name="idEdit" id="idEdit" hidden>
+        <tr>
+            <td>Producer:</td>
+            <td><input type="text" id="producerEdit" placeholder="producer"></td>
+        </tr>
+        <tr>
+            <td>Model:</td>
+            <td><input type="text" id="modelEdit" placeholder="model"></td>
+        </tr>
+        <tr>
+            <td>Price:</td>
+            <td><input type="text" id="priceEdit" placeholder="price"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type="submit" value="Add" onclick="update()"></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><input type="submit" value="close" onclick="closeForm()"></td>
+        </tr>
+    </table>
+    </form>
+
 </body>
 </html>
